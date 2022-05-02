@@ -2,7 +2,7 @@ name: Data Updation
 on:
   schedule:
       # Runs at the end of every day
-      - cron: '0 55 22 ? * * *'
+      - cron: '0 23 * * *'
   workflow_dispatch:
 
 jobs:     
