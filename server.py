@@ -13,6 +13,7 @@ app = dash.Dash(
     title="YouTube Trending Videos Dashboard",
 )
 
+server = app.server
 df = fetchData()
 
 
