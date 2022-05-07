@@ -168,19 +168,18 @@ app.layout = dbc.Container(
                         dbc.Card(
                             dcc.Graph(
                                 id="graph-1",
-                                config={"displayModeBar": False, "responsive": True},
+                                config={"displayModeBar": False, "responsive": True,
+                                "autosizable": True},
                             ),
                             className="my-4 mr-2 shadow-sm mb-2",
                         ),
                     ],
                     width=8,
-                    style={"minWidth": "500px",
-                           "minHeight": "300px"},
+                    style={"minWidth": "500px", "minHeight": "300px"},
                 ),
             ],
             className="mb-5",
         ),
-
         dbc.Row(
             [
                 dbc.Col(
@@ -188,7 +187,8 @@ app.layout = dbc.Container(
                         dbc.Card(
                             dcc.Graph(
                                 id="graph-2",
-                                config={"displayModeBar": False, "responsive": True},
+                                config={"displayModeBar": False, "responsive": True,
+                                "autosizable": True},
                             ),
                             className="my-4 mr-2 shadow-sm",
                         ),
@@ -196,13 +196,13 @@ app.layout = dbc.Container(
                     width=8,
                     style={"minWidth": "500px"},
                 ),
-                
                 dbc.Col(
                     [
                         dbc.Card(
                             dcc.Graph(
                                 id="graph-3",
-                                config={"displayModeBar": False, "responsive": True},
+                                config={"displayModeBar": False, "responsive": True, 
+                                "autosizable": True},
                             ),
                             className="my-4 mr-2 shadow-sm",
                         ),
@@ -210,7 +210,38 @@ app.layout = dbc.Container(
                     width=4,
                 ),
             ],
-            className="pt-5"
+            className="pt-5",
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        dbc.Card(
+                            dcc.Graph(
+                                id="graph-4",
+                                config={"displayModeBar": False, "responsive": True, 
+                                "autosizable": True},
+                            ),
+                            className="my-4 mr-2 shadow-sm",
+                        ),
+                    ],
+                    width=6,
+                    style={"minWidth": "500px"},
+                ),
+                dbc.Col(
+                    [
+                        dbc.Card(
+                            dcc.Graph(
+                                id="graph-5",
+                                config={"displayModeBar": False, "responsive": True, "autosizable": True},
+                            ),
+                            className="my-4 mr-2 shadow-sm",
+                        ),
+                    ],
+                    width=6,
+                ),
+            ],
+            className="pt-5",
         ),
     ],
     fluid=True,
@@ -356,16 +387,25 @@ def update_graph(dateRange, categoryChosen):
         else:
             filteredData = df
 
-        data = filteredData.publishedAt.dt.day_name().value_counts().to_frame().to_dict()['publishedAt']
-        days = ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+        data = (
+            filteredData.publishedAt.dt.day_name()
+            .value_counts()
+            .to_frame()
+            .to_dict()["publishedAt"]
+        )
+        days = (
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        )
         values = tuple(data[i] for i in days)
         fig = go.Figure()
         fig.add_trace(
-            go.Scatter(x=days, 
-                         y=values,
-                         mode='lines',
-                         name='Trend over weekdays'
-                    )
+            go.Scatter(x=days, y=values, mode="lines", name="Trend over weekdays")
         )
 
         fig.update_layout(
@@ -387,6 +427,7 @@ def update_graph(dateRange, categoryChosen):
     except:
         graph = fig
         return graph
+
 
 # Graph 3 Callbacks
 @app.callback(
@@ -413,11 +454,16 @@ def update_graph(dateRange, categoryChosen):
             filteredData = df
 
         value_counts = filteredData["fullyCapitalizedTitle"].value_counts().to_dict()
-        fig = go.Figure(data=[go.Pie(labels=['No', 'Yes'],
-                             values=[value_counts[False], value_counts[True]],
-                             textinfo='label+percent',
-                             pull=[0.2, 0, 0]
-                             )])
+        fig = go.Figure(
+            data=[
+                go.Pie(
+                    labels=["No", "Yes"],
+                    values=[value_counts[False], value_counts[True]],
+                    textinfo="label+percent",
+                    pull=[0.2, 0, 0],
+                )
+            ]
+        )
 
         fig.update_layout(
             font=dict(size=15),
@@ -425,9 +471,121 @@ def update_graph(dateRange, categoryChosen):
             title={"text": "Video Title Captialized?"},
         )
 
-        fig.update_traces(hoverinfo='label+value',  textfont_size=15, 
-                  marker=dict(line=dict(color='#eff542', width=2)), showlegend=False)
+        fig.update_traces(
+            hoverinfo="label+value",
+            textfont_size=15,
+            marker=dict(line=dict(color="#eff542", width=2)),
+            showlegend=False,
+        )
 
+        return fig
+
+    except:
+        graph = fig
+        return graph
+
+
+# Graph 4 Callbacks
+@app.callback(
+    Output(component_id="graph-4", component_property="figure"),
+    [
+        Input(component_id="date-dropdown", component_property="value"),
+        Input(component_id="category-dropdown", component_property="value"),
+    ],
+)
+def update_graph(dateRange, categoryChosen):
+    fig = go.Figure()
+    try:
+        if dateRange != "all" and categoryChosen != "all":
+            date_mask = df.publishedAt.dt.month == int(dateRange)
+            category_mask = df.category_name == categoryChosen
+            filteredData = df[date_mask & category_mask]
+        elif dateRange != "all" and categoryChosen == "all":
+            date_mask = df.publishedAt.dt.month == int(dateRange)
+            filteredData = df[date_mask]
+        elif dateRange == "all" and categoryChosen != "all":
+            category_mask = df.category_name == categoryChosen
+            filteredData = df[category_mask]
+        else:
+            filteredData = df
+
+        data = (
+            filteredData.groupby("channelTitle")
+            .size()
+            .reset_index(name="video_count")
+            .sort_values("video_count", ascending=False)
+            .head(10)
+            .reset_index(drop=True)
+        )
+        fig = go.Figure(
+            data=[
+                go.Bar(
+                    x=data["channelTitle"],
+                    y=data["video_count"],
+                    text=data["video_count"],
+                )
+            ]
+        )
+
+        fig.update_layout(
+            font=dict(size=15),
+            template="simple_white",
+            xaxis_tickangle=-30,
+            yaxis={"visible": False, "showticklabels": False},
+            title={"text": "Top 10 Trending Channels"},
+            xaxis_title="Channel Name",
+        )
+
+        return fig
+
+    except:
+        graph = fig
+        return graph
+
+
+# Graph 5 Callbacks
+@app.callback(
+    Output(component_id="graph-5", component_property="figure"),
+    [
+        Input(component_id="date-dropdown", component_property="value"),
+        Input(component_id="category-dropdown", component_property="value"),
+    ],
+)
+def update_graph(dateRange, categoryChosen):
+    fig = go.Figure()
+    try:
+        if dateRange != "all" and categoryChosen != "all":
+            date_mask = df.publishedAt.dt.month == int(dateRange)
+            category_mask = df.category_name == categoryChosen
+            filteredData = df[date_mask & category_mask]
+        elif dateRange != "all" and categoryChosen == "all":
+            date_mask = df.publishedAt.dt.month == int(dateRange)
+            filteredData = df[date_mask]
+        elif dateRange == "all" and categoryChosen != "all":
+            category_mask = df.category_name == categoryChosen
+            filteredData = df[category_mask]
+        else:
+            filteredData = df
+
+        fig = go.Figure(
+            data=[
+                go.Histogram(
+                    x=filteredData["title_length"].values,
+                    text=filteredData["title_length"].values,
+                )
+            ]
+        )
+
+        fig.update_traces(marker=dict(line=dict(width=2)), showlegend=False)
+
+        fig.update_layout(
+            font=dict(size=15),
+            template="simple_white",
+            title={"text": "Video Title Length Distribution"},
+            yaxis={"visible": False, "showgrid": False},
+            xaxis={"visible": True, "showgrid": False},
+            xaxis_title="Length",
+        )
         return fig
 
     except:
