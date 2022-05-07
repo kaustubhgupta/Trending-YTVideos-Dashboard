@@ -133,3 +133,18 @@ def fetchData() -> pd.DataFrame:
     df_reduced = reduce_mem_usage(df)
     df_cleaned = dataClean_Filling(df_reduced)
     return df_cleaned
+
+
+def fetchStats(df: pd.DataFrame) -> pd.DataFrame:
+    stats = df.describe().reset_index()
+    stats = stats[["index", "view_count", "likes", "comment_count"]]
+    stats = stats.rename(
+        columns={
+            "index": "Metric",
+            "view_count": "Views",
+            "likes": "Likes",
+            "comment_count": "Comments",
+        }
+    )
+    stats = stats.round(2)
+    return stats

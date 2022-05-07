@@ -1,1 +1,1 @@
-from utils.utils import fetchData
+from utils.utils import fetchData, fetchStats
