@@ -168,8 +168,11 @@ app.layout = dbc.Container(
                         dbc.Card(
                             dcc.Graph(
                                 id="graph-1",
-                                config={"displayModeBar": False, "responsive": True,
-                                "autosizable": True},
+                                config={
+                                    "displayModeBar": False,
+                                    "responsive": True,
+                                    "autosizable": True,
+                                },
                             ),
                             className="my-4 mr-2 shadow-sm mb-2",
                         ),
@@ -187,8 +190,11 @@ app.layout = dbc.Container(
                         dbc.Card(
                             dcc.Graph(
                                 id="graph-2",
-                                config={"displayModeBar": False, "responsive": True,
-                                "autosizable": True},
+                                config={
+                                    "displayModeBar": False,
+                                    "responsive": True,
+                                    "autosizable": True,
+                                },
                             ),
                             className="my-4 mr-2 shadow-sm",
                         ),
@@ -201,8 +207,11 @@ app.layout = dbc.Container(
                         dbc.Card(
                             dcc.Graph(
                                 id="graph-3",
-                                config={"displayModeBar": False, "responsive": True, 
-                                "autosizable": True},
+                                config={
+                                    "displayModeBar": False,
+                                    "responsive": True,
+                                    "autosizable": True,
+                                },
                             ),
                             className="my-4 mr-2 shadow-sm",
                         ),
@@ -219,8 +228,11 @@ app.layout = dbc.Container(
                         dbc.Card(
                             dcc.Graph(
                                 id="graph-4",
-                                config={"displayModeBar": False, "responsive": True, 
-                                "autosizable": True},
+                                config={
+                                    "displayModeBar": False,
+                                    "responsive": True,
+                                    "autosizable": True,
+                                },
                             ),
                             className="my-4 mr-2 shadow-sm",
                         ),
@@ -233,7 +245,11 @@ app.layout = dbc.Container(
                         dbc.Card(
                             dcc.Graph(
                                 id="graph-5",
-                                config={"displayModeBar": False, "responsive": True, "autosizable": True},
+                                config={
+                                    "displayModeBar": False,
+                                    "responsive": True,
+                                    "autosizable": True,
+                                },
                             ),
                             className="my-4 mr-2 shadow-sm",
                         ),
