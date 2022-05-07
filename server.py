@@ -2,9 +2,9 @@ import dash
 import plotly.graph_objects as go
 import plotly.express as px
 import dash_bootstrap_components as dbc
-from dash import dcc, html
+from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output
-from utils import fetchData
+from utils import fetchData, fetchStats
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(
@@ -15,7 +15,7 @@ app = dash.Dash(
 
 server = app.server
 df = fetchData()
-
+stats = fetchStats(df)
 
 header = dbc.Row(
     dbc.Col(
@@ -93,34 +93,6 @@ control_panel = dbc.Card(
             placeholder="Select Category",
             searchable=True,
         ),
-        # dcc.Dropdown(
-        #     id="branch-select",
-        #     placeholder="Select Branch",
-        #     options=[
-        #         {"label": "CSE", "value": "CSE"},
-        #         {"label": "IT", "value": "IT"},
-        #         {"label": "MAE", "value": "MAE"},
-        #         {"label": "EEE", "value": "EEE"},
-        #         {"label": "ECE", "value": "ECE"},
-        #         {"label": "ITE", "value": "ITE"},  # New branch
-        #         {"label": "ME", "value": "ME"},  # New branch
-        #         {"label": "CST", "value": "CST"},  # New branch
-        #         {"label": "CIV", "value": "CIV"},  # New branch
-        #         {"label": "EE", "value": "EE"},  # New branch
-        #         {"label": "ICE", "value": "ICE"},  # New branch
-        #         {"label": "MET", "value": "MET"},  # New branch
-        #         {"label": "TE", "value": "TE"},  # New branch
-        #     ],
-        #     value="CSE",
-        #     searchable=False,
-        # ),
-        # dcc.Dropdown(
-        #     id="column-select",
-        #     placeholder="Select Subject",
-        #     value="Percentage",
-        #     searchable=False,
-        #     optionHeight=70,
-        # ),
     ],
     className="shadow-sm bg-light p-4 mb-2",
     style={"minWidth": "250px"},
@@ -143,14 +115,6 @@ kpi_container = dbc.CardDeck(
             className="p-4 mr-2 shadow-sm bg-light",
             id="month_records_card",
         ),
-        # dbc.Card(
-        #     [
-        #         html.H3(id="total_branch_records"),
-        #         html.P(id="total_branch_records_text"),
-        #     ],
-        #     className="p-4 mr-2 shadow-sm bg-light",
-        #     id="branch_records_card",
-        # ),
     ]
 )
 
@@ -159,13 +123,71 @@ app.layout = dbc.Container(
         header,
         dbc.Row(
             [
-                dbc.Col([control_panel,], width=3,),
+                dbc.Col([control_panel,], width=4,),
+                dbc.Col([kpi_container,], width=8, style={"minWidth": "500px"},),
+            ],
+        ),
+        dbc.Row(
+            [
                 dbc.Col(
                     [
-                        kpi_container,
+                        dbc.Card(
+                            [
+                                html.Center(children=[html.H4("Statistical Numbers")]),
+                                dash_table.DataTable(
+                                    stats.to_dict("records"),
+                                    [{"name": i, "id": i} for i in stats.columns],
+                                    style_as_list_view=True,
+                                    style_cell={"padding": "5px"},
+                                    sort_action="native",
+                                    style_header={
+                                        "backgroundColor": "rgb(210, 210, 210)",
+                                        "fontWeight": "bold",
+                                    },
+                                    tooltip_data=[
+                                        {
+                                            column: {
+                                                "value": str(value),
+                                                "type": "markdown",
+                                            }
+                                            for column, value in row.items()
+                                        }
+                                        for row in stats.to_dict("records")
+                                    ],
+                                    tooltip_delay=0,
+                                    tooltip_duration=None,
+                                ),
+                            ],
+                            className="my-4 mr-2 shadow-sm mb-2",
+                        ),
+                    ],
+                    width=4,
+                ),
+                dbc.Col(
+                    [
                         dbc.Card(
                             dcc.Graph(
                                 id="graph-1",
+                                config={"displayModeBar": False, "responsive": True},
+                            ),
+                            className="my-4 mr-2 shadow-sm mb-2",
+                        ),
+                    ],
+                    width=8,
+                    style={"minWidth": "500px",
+                           "minHeight": "300px"},
+                ),
+            ],
+            className="mb-5",
+        ),
+
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        dbc.Card(
+                            dcc.Graph(
+                                id="graph-2",
                                 config={"displayModeBar": False, "responsive": True},
                             ),
                             className="my-4 mr-2 shadow-sm",
@@ -174,25 +196,22 @@ app.layout = dbc.Container(
                     width=8,
                     style={"minWidth": "500px"},
                 ),
+                
+                dbc.Col(
+                    [
+                        dbc.Card(
+                            dcc.Graph(
+                                id="graph-3",
+                                config={"displayModeBar": False, "responsive": True},
+                            ),
+                            className="my-4 mr-2 shadow-sm",
+                        ),
+                    ],
+                    width=4,
+                ),
             ],
+            className="pt-5"
         ),
-        # dbc.Row(
-        #     [
-        #         dbc.Col(
-        #             [
-        #                 dbc.Card(
-        #                     dcc.Graph(
-        #                         id="graph-2",
-        #                         config={"displayModeBar": False, "responsive": True},
-        #                     ),
-        #                     className="my-4 mr-2 shadow-sm",
-        #                 ),
-        #             ],
-        #             width=8,
-        #             style={"minWidth": "500px"},
-        #         ),
-        #     ],
-        # ),
     ],
     fluid=True,
     className="bg-light",
@@ -251,7 +270,7 @@ def update_total_month_records(dateRange, categoryChosen):
     )
 
 
-# Graph Callbacks
+# Graph 1 Callbacks
 @app.callback(
     Output(component_id="graph-1", component_property="figure"),
     [
@@ -260,7 +279,7 @@ def update_total_month_records(dateRange, categoryChosen):
     ],
 )
 def update_graph(dateRange, categoryChosen):
-
+    fig = go.Figure()
     try:
         if dateRange != "all" and categoryChosen != "all":
             date_mask = df.publishedAt.dt.month == int(dateRange)
@@ -295,12 +314,12 @@ def update_graph(dateRange, categoryChosen):
         fig.update_layout(
             xaxis_tickangle=-45,
             font=dict(size=15),
-            yaxis={"visible": True, "showticklabels": False, "showgrid": False},
+            yaxis={"visible": True, "showgrid": False},
             xaxis={"visible": True, "showgrid": False},
             xaxis_title="Hour of Day (24-hour clock)",
             yaxis_title="Number of Videos",
             template="simple_white",
-            title={"text": "Publishing Trend"},
+            title={"text": "Hourly Publishing Trend"},
         )
 
         fig.update_layout(hovermode="x")
@@ -309,7 +328,110 @@ def update_graph(dateRange, categoryChosen):
         return fig
 
     except:
-        graph = ""
+        graph = fig
+        return graph
+
+
+# Graph 2 Callbacks
+@app.callback(
+    Output(component_id="graph-2", component_property="figure"),
+    [
+        Input(component_id="date-dropdown", component_property="value"),
+        Input(component_id="category-dropdown", component_property="value"),
+    ],
+)
+def update_graph(dateRange, categoryChosen):
+    fig = go.Figure()
+    try:
+        if dateRange != "all" and categoryChosen != "all":
+            date_mask = df.publishedAt.dt.month == int(dateRange)
+            category_mask = df.category_name == categoryChosen
+            filteredData = df[date_mask & category_mask]
+        elif dateRange != "all" and categoryChosen == "all":
+            date_mask = df.publishedAt.dt.month == int(dateRange)
+            filteredData = df[date_mask]
+        elif dateRange == "all" and categoryChosen != "all":
+            category_mask = df.category_name == categoryChosen
+            filteredData = df[category_mask]
+        else:
+            filteredData = df
+
+        data = filteredData.publishedAt.dt.day_name().value_counts().to_frame().to_dict()['publishedAt']
+        days = ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+        values = tuple(data[i] for i in days)
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(x=days, 
+                         y=values,
+                         mode='lines',
+                         name='Trend over weekdays'
+                    )
+        )
+
+        fig.update_layout(
+            xaxis_tickangle=-45,
+            font=dict(size=15),
+            yaxis={"visible": True, "showgrid": False},
+            xaxis={"visible": True, "showgrid": False},
+            xaxis_title="Week Days",
+            yaxis_title="Number of Videos",
+            template="simple_white",
+            title={"text": "Weekly Publishing Trend"},
+        )
+
+        fig.update_layout(hovermode="x")
+        fig.update_traces(hovertemplate="Day: %{x}<br>Videos: %{y}<extra></extra>",)
+
+        return fig
+
+    except:
+        graph = fig
+        return graph
+
+# Graph 3 Callbacks
+@app.callback(
+    Output(component_id="graph-3", component_property="figure"),
+    [
+        Input(component_id="date-dropdown", component_property="value"),
+        Input(component_id="category-dropdown", component_property="value"),
+    ],
+)
+def update_graph(dateRange, categoryChosen):
+    fig = go.Figure()
+    try:
+        if dateRange != "all" and categoryChosen != "all":
+            date_mask = df.publishedAt.dt.month == int(dateRange)
+            category_mask = df.category_name == categoryChosen
+            filteredData = df[date_mask & category_mask]
+        elif dateRange != "all" and categoryChosen == "all":
+            date_mask = df.publishedAt.dt.month == int(dateRange)
+            filteredData = df[date_mask]
+        elif dateRange == "all" and categoryChosen != "all":
+            category_mask = df.category_name == categoryChosen
+            filteredData = df[category_mask]
+        else:
+            filteredData = df
+
+        value_counts = filteredData["fullyCapitalizedTitle"].value_counts().to_dict()
+        fig = go.Figure(data=[go.Pie(labels=['No', 'Yes'],
+                             values=[value_counts[False], value_counts[True]],
+                             textinfo='label+percent',
+                             pull=[0.2, 0, 0]
+                             )])
+
+        fig.update_layout(
+            font=dict(size=15),
+            template="simple_white",
+            title={"text": "Video Title Captialized?"},
+        )
+
+        fig.update_traces(hoverinfo='label+value',  textfont_size=15, 
+                  marker=dict(line=dict(color='#eff542', width=2)), showlegend=False)
+
+        return fig
+
+    except:
+        graph = fig
         return graph
 
 
