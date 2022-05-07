@@ -125,6 +125,7 @@ def dataClean_Filling(df: pd.DataFrame) -> pd.DataFrame:
     df = addCategories(df)
     df["fullyCapitalizedTitle"] = df["cleanedTitle"].apply(capitalizedTitle)
     df["cleanedTags"] = df["tags"].apply(cleanTags)
+    df["title_length"] = df["cleanedTitle"].apply(lambda x: len(x.split()))
     return df
 
 
