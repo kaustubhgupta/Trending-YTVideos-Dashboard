@@ -117,7 +117,7 @@ def dataClean_Filling(df: pd.DataFrame) -> pd.DataFrame:
     df["description"] = df["description"].fillna(value="")
     df["channelTitle"] = df["channelTitle"].fillna(value="")
     df["tags"] = df["tags"].fillna(value="")
-    df["trending_date"] = pd.to_datetime(df["trending_date"], utc=True)
+    df["trending_date"] = pd.to_datetime(df["trending_date"], utc=True, format="%y.%d.%m")
     df["publishedAt"] = pd.to_datetime(df["publishedAt"])
     df["publishedAt"] = df.set_index("publishedAt").tz_convert("Asia/Kolkata").index
     df["cleanedTitle"] = df["title"].apply(emoji_free_text)

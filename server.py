@@ -547,7 +547,7 @@ def update_graph(dateRange, categoryChosen):
             font=dict(size=15),
             template="simple_white",
             xaxis_tickangle=-30,
-            yaxis={"visible": False, "showticklabels": False},
+            yaxis={"visible": True, "showticklabels": True},
             title={"text": "Top 10 Trending Channels"},
             xaxis_title="Channel Name",
         )
@@ -587,7 +587,6 @@ def update_graph(dateRange, categoryChosen):
             data=[
                 go.Histogram(
                     x=filteredData["title_length"].values,
-                    text=filteredData["title_length"].values,
                 )
             ]
         )
@@ -598,7 +597,7 @@ def update_graph(dateRange, categoryChosen):
             font=dict(size=15),
             template="simple_white",
             title={"text": "Video Title Length Distribution"},
-            yaxis={"visible": False, "showgrid": False},
+            yaxis={"visible": True, "showgrid": False},
             xaxis={"visible": True, "showgrid": False},
             xaxis_title="Length",
         )
